@@ -3,7 +3,7 @@ import {
   BASE_FEE,
   Contract,
   Networks,
-  SorobanRpc,
+  rpc,
   TransactionBuilder,
   nativeToScVal,
   scValToNative,
@@ -13,7 +13,7 @@ import { POLL_OPTIONS, TESTNET, type PollOptionId } from "../config";
 import type { PollResults, VoteEvent } from "../types";
 import { signTransactionXdr } from "./wallet";
 
-const server = new SorobanRpc.Server(TESTNET.rpcUrl, { allowHttp: TESTNET.rpcUrl.startsWith("http://") });
+const server = new rpc.Server(TESTNET.rpcUrl, { allowHttp: TESTNET.rpcUrl.startsWith("http://") });
 
 function getContract(): Contract {
   if (!TESTNET.contractId) {
@@ -40,7 +40,7 @@ export async function readResults(): Promise<PollResults> {
 
   const response = await server.simulateTransaction(tx);
 
-  if (!SorobanRpc.Api.isSimulationSuccess(response)) {
+  if (!rpc.Api.isSimulationSuccess(response)) {
     throw new Error("Unable to simulate results read.");
   }
 
@@ -98,9 +98,7 @@ export async function waitForTransaction(hash: string): Promise<void> {
 }
 
 export async function fetchVoteEvents(cursor?: string): Promise<{ events: VoteEvent[]; cursor?: string }> {
-  const eventResponse = await server.getEvents({
-    startLedger: cursor ? undefined : "latest",
-    cursor,
+  const requestArgs: any = {
     filters: [
       {
         type: "contract",
@@ -109,9 +107,15 @@ export async function fetchVoteEvents(cursor?: string): Promise<{ events: VoteEv
       }
     ],
     limit: 20
-  });
+  };
 
-  const events = eventResponse.events.map((event) => {
+  if (cursor) {
+    requestArgs.cursor = cursor;
+  }
+
+  const eventResponse = await server.getEvents(requestArgs);
+
+  const events = eventResponse.events.map((event: any) => {
     const value = scValToNative(event.value) as { option?: PollOptionId; voter?: string };
 
     return {

@@ -24,18 +24,27 @@ export function getWalletKit(): StellarWalletsKit {
 export async function connectWallet(): Promise<WalletInfo> {
   const walletKit = getWalletKit();
 
-  await walletKit.openModal({
-    modalTitle: "Connect a Stellar wallet",
-    notAvailableText: "Install this wallet to use it on Stellar testnet."
+  return new Promise((resolve, reject) => {
+    walletKit.openModal({
+      modalTitle: "Connect a Stellar wallet",
+      notAvailableText: "Install this wallet to use it on Stellar testnet.",
+      onWalletSelected: async (option: any) => {
+        try {
+          walletKit.setWallet(option.id);
+          const { address } = await walletKit.getAddress();
+          resolve({
+            address,
+            name: option.name || "Stellar wallet"
+          });
+        } catch (e) {
+          reject(e);
+        }
+      },
+      onClosed: (err: any) => {
+        reject(err || new Error("Modal closed"));
+      }
+    });
   });
-
-  const { address } = await walletKit.getAddress();
-  const selected = walletKit.getSelectedWallet();
-
-  return {
-    address,
-    name: selected?.name || "Stellar wallet"
-  };
 }
 
 export async function signTransactionXdr(xdr: string, address: string): Promise<string> {
