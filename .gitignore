@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+.env.local
+.stellar
+target
+contracts/live-poll/target
+*.wasm
+npm-debug.log*
+work

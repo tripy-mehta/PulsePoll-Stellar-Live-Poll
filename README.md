@@ -1,0 +1,126 @@
+# PulsePoll - Stellar Level 2 Live Poll
+
+PulsePoll is a multi-wallet Stellar testnet dapp with a Soroban smart contract, wallet-signed voting, transaction status tracking, and live event synchronization.
+
+## What It Demonstrates
+
+- Multi-wallet support through `@creit.tech/stellar-wallets-kit`
+- Error handling for wallet not found, user rejection, insufficient balance, network errors, and unknown failures
+- Soroban contract with `vote` and `results` functions
+- Frontend contract writes and reads
+- Pending, success, and failed transaction states
+- Realtime contract event polling with automatic result refresh
+- Demo stream mode so the UI can be reviewed before deployment
+
+## Tech Stack
+
+- Vite + React + TypeScript
+- Stellar Wallets Kit
+- Stellar SDK Soroban RPC
+- Soroban Rust smart contract
+
+## App Idea
+
+Users vote on which Stellar project should be built next:
+
+- Token Swap Interface
+- NFT Minter
+- Live Auction
+
+Each vote calls the Soroban contract, updates on-chain totals, emits a `vote` event, and refreshes the UI from live testnet state.
+
+## Setup
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Open the local URL printed by Vite.
+
+By default `VITE_DEMO_MODE=true`, which lets reviewers see the live feed and transaction UI without a deployed contract. Set `VITE_DEMO_MODE=false` after deploying.
+
+## Deploy Contract To Stellar Testnet
+
+Install the Stellar CLI:
+
+```bash
+cargo install --locked stellar-cli
+rustup target add wasm32-unknown-unknown
+```
+
+Fund a testnet account at the Stellar Laboratory or Friendbot. Then fill these in `.env.local`:
+
+```bash
+DEPLOYER_SECRET_KEY=SA...
+DEPLOYER_PUBLIC_KEY=G...
+```
+
+Build and deploy:
+
+```bash
+npm run contract:build
+npm run contract:deploy
+```
+
+Copy the returned contract ID into `.env.local`:
+
+```bash
+VITE_CONTRACT_ID=C...
+PUBLIC_POLL_CONTRACT_ID=C...
+VITE_DEMO_MODE=false
+```
+
+Restart the frontend:
+
+```bash
+npm run dev
+```
+
+## Verify A Contract Call
+
+Use the frontend vote button with Freighter, xBull, LOBSTR, Hana, or another Stellar Wallets Kit-compatible wallet.
+
+You can also invoke from the CLI:
+
+```bash
+npm run contract:invoke -- dex
+```
+
+Record the resulting transaction hash and verify it on Stellar Expert testnet.
+
+## Submission Evidence
+
+- Public GitHub repository: `TODO: add repository URL`
+- Live demo link: `TODO: optional Vercel/Netlify URL`
+- Screenshot of wallet options: `TODO: add screenshot after running the app`
+- Deployed contract address: `TODO: paste C... contract ID`
+- Transaction hash of contract call: `TODO: paste testnet transaction hash`
+
+## Required Level 2 Checklist
+
+- [x] 3 error types handled: wallet not found, rejected request, insufficient balance
+- [x] Contract source included and ready to deploy on testnet
+- [x] Contract call wired from frontend
+- [x] Transaction status visible: idle, pending, success, failed
+- [x] Event listening and UI state synchronization
+- [x] README with setup instructions
+- [ ] Paste deployed contract address after deployment
+- [ ] Paste transaction hash after first real testnet vote
+- [ ] Add public GitHub URL
+- [ ] Add minimum 2 meaningful commits
+
+## Project Structure
+
+```text
+contracts/live-poll/     Soroban smart contract
+scripts/                 Deployment and invoke helpers
+src/lib/                 Wallet, Stellar RPC, errors, formatting
+src/main.tsx             Main dapp UI
+src/styles.css           Responsive interface styling
+```
+
+## Notes For Reviewers
+
+The app starts in demo mode because secret keys and funded testnet accounts should not be committed. Once `VITE_CONTRACT_ID` is set and `VITE_DEMO_MODE=false`, the same UI path submits signed wallet transactions to the deployed Soroban contract and polls emitted events from testnet.
