@@ -6,6 +6,7 @@ import {
 } from "@creit.tech/stellar-wallets-kit";
 import { TESTNET } from "../config";
 import type { WalletInfo } from "../types";
+import { fetchBalance } from "./stellar";
 
 let kit: StellarWalletsKit | undefined;
 
@@ -32,9 +33,11 @@ export async function connectWallet(): Promise<WalletInfo> {
         try {
           walletKit.setWallet(option.id);
           const { address } = await walletKit.getAddress();
+          const balance = await fetchBalance(address);
           resolve({
             address,
-            name: option.name || "Stellar wallet"
+            name: option.name || "Stellar wallet",
+            balance
           });
         } catch (e) {
           reject(e);

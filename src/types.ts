@@ -22,9 +22,10 @@ export type VoteEvent = {
 
 export type PollResults = Record<PollOptionId, number>;
 
-export type WalletInfo = {
+export interface WalletInfo {
   address: string;
   name: string;
+  balance?: string;
 };
 
 export type TxState = {

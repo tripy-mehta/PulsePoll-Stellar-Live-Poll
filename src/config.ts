@@ -6,7 +6,9 @@ export const TESTNET = {
   contractId: import.meta.env.VITE_CONTRACT_ID || "",
   explorerBase:
     import.meta.env.VITE_STELLAR_EXPERT_BASE || "https://stellar.expert/explorer/testnet",
-  demoMode: import.meta.env.VITE_DEMO_MODE !== "false"
+  demoMode: import.meta.env.VITE_DEMO_MODE !== "false",
+  treasuryAddress: import.meta.env.VITE_TREASURY_ADDRESS || "GA2C5RFPE6GCKMY3US5PAB6ALIIG5EPCEUEXCEKDFQHQZICOMRUFBPTN",
+  voteCost: "100.0000000"
 };
 
 export const POLL_OPTIONS = [

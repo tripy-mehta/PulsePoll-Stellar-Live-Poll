@@ -7,7 +7,9 @@ import {
   TransactionBuilder,
   nativeToScVal,
   scValToNative,
-  xdr
+  xdr,
+  Operation,
+  Asset
 } from "@stellar/stellar-sdk";
 import { POLL_OPTIONS, TESTNET, type PollOptionId } from "../config";
 import type { PollResults, VoteEvent } from "../types";
@@ -63,6 +65,13 @@ export async function submitVote(option: PollOptionId, address: string): Promise
     fee: BASE_FEE,
     networkPassphrase: TESTNET.networkPassphrase
   })
+    .addOperation(
+      Operation.payment({
+        destination: TESTNET.treasuryAddress,
+        asset: Asset.native(),
+        amount: TESTNET.voteCost
+      })
+    )
     .addOperation(contract.call("vote", Address.fromString(address).toScVal(), optionToScVal(option)))
     .setTimeout(30)
     .build();
@@ -132,4 +141,16 @@ export async function fetchVoteEvents(cursor?: string): Promise<{ events: VoteEv
     events,
     cursor: eventResponse.cursor
   };
+}
+
+export async function fetchBalance(address: string): Promise<string> {
+  try {
+    const res = await fetch(`${TESTNET.horizonUrl}/accounts/${address}`);
+    if (!res.ok) return "0.00";
+    const data = await res.json();
+    const nativeBal = data.balances?.find((b: any) => b.asset_type === "native");
+    return nativeBal ? nativeBal.balance : "0.00";
+  } catch (e) {
+    return "0.00";
+  }
 }

@@ -6,7 +6,7 @@ import { createDemoEvent, createInitialResults } from "./lib/demoStream";
 import { classifyWalletError, errorMessage } from "./lib/errors";
 import { formatPercent, shortAddress } from "./lib/format";
 import { connectWallet } from "./lib/wallet";
-import { fetchVoteEvents, readResults, submitVote, waitForTransaction } from "./lib/stellar";
+import { fetchBalance, fetchVoteEvents, readResults, submitVote, waitForTransaction } from "./lib/stellar";
 import type { PollResults, TxState, VoteEvent, WalletErrorType, WalletInfo, WalletStatus } from "./types";
 import "./styles.css";
 
@@ -29,6 +29,16 @@ function App() {
     status: "idle",
     message: "Connect a wallet and cast a testnet vote."
   });
+  const [toasts, setToasts] = React.useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
+  const [votedPopup, setVotedPopup] = React.useState<{ option: string; hash?: string } | null>(null);
+
+  const addToast = (message: string, type: "success" | "info" = "info") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
 
   const totalVotes = Object.values(results).reduce((sum, value) => sum + value, 0);
 
@@ -120,6 +130,12 @@ function App() {
           hash: demoHash,
           message: "Demo vote synced. Add VITE_CONTRACT_ID to submit this on testnet."
         });
+        addToast(`Demo vote successful! (${TESTNET.voteCost} XLM deducted from dummy balance)`, "success");
+        setVotedPopup({ option: POLL_OPTIONS.find(o => o.id === selectedOption)?.label || selectedOption, hash: demoHash });
+        setTimeout(() => setVotedPopup(null), 8000);
+        if (wallet) {
+           setWallet({ ...wallet, balance: (parseFloat(wallet.balance || "0") - parseFloat(TESTNET.voteCost)).toFixed(7) });
+        }
         return;
       }
 
@@ -127,19 +143,46 @@ function App() {
       setTx({ status: "pending", hash, message: "Submitted. Waiting for Stellar confirmation..." });
       await waitForTransaction(hash);
       setTx({ status: "success", hash, message: "Vote confirmed on Stellar testnet." });
+      addToast(`Vote confirmed! ${TESTNET.voteCost} XLM paid.`, "success");
+      setVotedPopup({ option: POLL_OPTIONS.find(o => o.id === selectedOption)?.label || selectedOption, hash });
+      setTimeout(() => setVotedPopup(null), 8000);
       await refreshResults();
+      
+      const newBalance = await fetchBalance(wallet.address);
+      setWallet({ ...wallet, balance: newBalance });
     } catch (error) {
       const type = classifyWalletError(error);
       setWalletError(type);
       setTx({ status: "failed", message: errorMessage(type) });
+      addToast(errorMessage(type), "info");
     }
   }
+
+  const sortedOptions = [...POLL_OPTIONS].sort((a, b) => results[b.id] - results[a.id]);
 
   const explorerTxUrl =
     tx.hash && !tx.hash.startsWith("demo-") ? `${TESTNET.explorerBase}/tx/${tx.hash}` : undefined;
 
   return (
     <main className="app-shell">
+      {votedPopup && (
+        <div className="vote-popup">
+          <div className="vote-popup-content">
+            <CheckCircle2 size={24} className="success-icon" />
+            <div>
+              <h3>Vote Successful!</h3>
+              <p>You voted for <strong>{votedPopup.option}</strong></p>
+              <p>{TESTNET.voteCost} XLM was deducted from your wallet.</p>
+              {votedPopup.hash && !votedPopup.hash.startsWith("demo-") && (
+                <a href={`${TESTNET.explorerBase}/tx/${votedPopup.hash}`} target="_blank" rel="noreferrer" className="verify-link">
+                  Verify transaction on Stellar <ExternalLink size={14} />
+                </a>
+              )}
+            </div>
+            <button className="close-popup" onClick={() => setVotedPopup(null)}>×</button>
+          </div>
+        </div>
+      )}
       <section className="topbar">
         <div className="brand-lockup">
           <span className="brand-mark">
@@ -153,9 +196,23 @@ function App() {
 
         <button className="wallet-button" onClick={handleConnect} disabled={walletStatus === "connecting"}>
           {walletStatus === "connecting" ? <Loader2 className="spin" size={18} /> : <Wallet size={18} />}
-          {wallet ? shortAddress(wallet.address, 6, 4) : "Connect wallet"}
+          {wallet ? (
+            <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              {shortAddress(wallet.address, 6, 4)} 
+              {wallet.balance && <span className="balance-badge">{wallet.balance} XLM</span>}
+            </span>
+          ) : "Connect wallet"}
         </button>
       </section>
+
+      <div className="toasts-container">
+        {toasts.map((t) => (
+          <div key={t.id} className={`toast ${t.type}`}>
+            {t.type === "success" && <CheckCircle2 size={16} />}
+            {t.message}
+          </div>
+        ))}
+      </div>
 
       <section className="workspace">
         <aside className="control-panel">
@@ -191,7 +248,7 @@ function App() {
 
           <button className="vote-button" onClick={handleVote} disabled={tx.status === "pending"}>
             {tx.status === "pending" ? <Loader2 className="spin" size={20} /> : <Vote size={20} />}
-            Vote on contract
+            Vote on contract ({TESTNET.voteCost} XLM)
           </button>
 
           <div className={`tx-panel ${tx.status}`}>
@@ -220,7 +277,7 @@ function App() {
           </div>
 
           <div className="results-list">
-            {POLL_OPTIONS.map((option) => {
+            {sortedOptions.map((option) => {
               const count = results[option.id];
               const percent = formatPercent(count, totalVotes);
 
