@@ -1,5 +1,34 @@
 # PulsePoll - Stellar Level 2 Live Poll
 
+## Submission Evidence
+
+- **Public GitHub repository:** https://github.com/tripy-mehta/PulsePoll-Stellar-Live-Poll
+- **Live demo link:** https://pulse-poll-stellar-live-poll.vercel.app/
+- **Deployed contract address:** `CAT4BOL7HQQ7C37C7H3UEPBNSMPTVD65XBTKWOXGHG76YDL3RHVCI56M`
+- **Transaction hash of contract call:** `90d8f14cc1c0b018bbbd272c9abd9bce109d5819cffc52c4260820470986e487`
+
+### Site Demonstration
+
+**Dashboard:**  
+![Dashboard](images/dashboard.png)
+
+**Wallet Options:**  
+![Wallet Options](images/multiple%20wallet%20options.png)
+
+**Connected and Balance:**  
+![Connected and Balance](images/connected%20and%20balance.png)
+
+**Successfully Voted:**  
+![Successfully Voted](images/sucees%20voted.png)
+
+**Event Feed Sync:**  
+![Event Feed](images/event%20feed.png)
+
+**Hash Verified:**  
+![Hash Verified](images/hash%20verified.png)
+
+---
+
 PulsePoll is a multi-wallet Stellar testnet dapp with a Soroban smart contract, wallet-signed voting, transaction status tracking, and live event synchronization.
 
 ## What It Demonstrates
@@ -89,27 +118,6 @@ npm run contract:invoke -- dex
 ```
 
 Record the resulting transaction hash and verify it on Stellar Expert testnet.
-
-## Submission Evidence
-
-- Public GitHub repository: https://github.com/tripy-mehta/PulsePoll-Stellar-Live-Poll
-- Live demo link: https://pulse-poll-stellar-live-poll.vercel.app/
-- Screenshot of wallet options: ![Wallet Options](images/multiple%20wallet%20options.png)
-- Deployed contract address: `CAT4BOL7HQQ7C37C7H3UEPBNSMPTVD65XBTKWOXGHG76YDL3RHVCI56M`
-- Transaction hash of contract call: `90d8f14cc1c0b018bbbd272c9abd9bce109d5819cffc52c4260820470986e487`
-
-## Required Level 2 Checklist
-
-- [x] 3 error types handled: wallet not found, rejected request, insufficient balance
-- [x] Contract source included and ready to deploy on testnet
-- [x] Contract call wired from frontend
-- [x] Transaction status visible: idle, pending, success, failed
-- [x] Event listening and UI state synchronization
-- [x] README with setup instructions
-- [x] Paste deployed contract address after deployment
-- [x] Paste transaction hash after first real testnet vote
-- [x] Add public GitHub URL
-- [x] Add minimum 2 meaningful commits
 
 ## Project Structure
 
