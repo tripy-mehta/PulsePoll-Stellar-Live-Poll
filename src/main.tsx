@@ -109,7 +109,7 @@ function App() {
   async function handleVote() {
     if (!wallet) {
       setWalletError("wallet_not_found");
-      setTx({ status: "failed", message: errorMessage("wallet_not_found") });
+      setTx({ status: "failed", message: errorMessage("wallet_not_found", new Error("No wallet connected")) });
       return;
     }
 
@@ -153,8 +153,8 @@ function App() {
     } catch (error) {
       const type = classifyWalletError(error);
       setWalletError(type);
-      setTx({ status: "failed", message: errorMessage(type) });
-      addToast(errorMessage(type), "info");
+      setTx({ status: "failed", message: errorMessage(type, error) });
+      addToast(errorMessage(type, error), "info");
     }
   }
 

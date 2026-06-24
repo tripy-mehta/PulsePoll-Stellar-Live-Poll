@@ -32,13 +32,14 @@ export function classifyWalletError(error: unknown): WalletErrorType {
   return "unknown";
 }
 
-export function errorMessage(type: WalletErrorType): string {
+export function errorMessage(type: WalletErrorType, errorObj?: unknown): string {
+  const originalMessage = errorObj instanceof Error ? errorObj.message : String(errorObj ?? "");
   const messages: Record<WalletErrorType, string> = {
     wallet_not_found: "Wallet not found. Install Freighter, xBull, LOBSTR, or another Stellar wallet.",
     user_rejected: "The wallet request was rejected. Nothing was submitted.",
     insufficient_balance: "Insufficient XLM balance for fees or minimum reserve on testnet.",
     network_error: "The Stellar testnet request failed. Check your connection and try again.",
-    unknown: "Something unexpected happened. Please try again."
+    unknown: `Something unexpected happened: ${originalMessage}. Please try again.`
   };
 
   return messages[type];

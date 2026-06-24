@@ -7,7 +7,7 @@ export const TESTNET = {
   explorerBase:
     import.meta.env.VITE_STELLAR_EXPERT_BASE || "https://stellar.expert/explorer/testnet",
   demoMode: import.meta.env.VITE_DEMO_MODE === "true",
-  treasuryAddress: import.meta.env.VITE_TREASURY_ADDRESS || "GA2C5RFPE6GCKMY3US5PAB6ALIIG5EPCEUEXCEKDFQHQZICOMRUFBPTN",
+  treasuryAddress: import.meta.env.VITE_TREASURY_ADDRESS || "GAR275JBTCARNFWN7BAFNTKYHNMTENBU7ORKJAYJIGPPUZDKOO2LVIBC",
   voteCost: "100.0000000"
 };
 
