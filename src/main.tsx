@@ -128,7 +128,7 @@ function App() {
         setTx({
           status: "success",
           hash: demoHash,
-          message: "Demo vote synced. Add VITE_CONTRACT_ID to submit this on testnet."
+          message: "Demo vote synced."
         });
         addToast(`Demo vote successful! (${TESTNET.voteCost} XLM deducted from dummy balance)`, "success");
         setVotedPopup({ option: POLL_OPTIONS.find(o => o.id === selectedOption)?.label || selectedOption, hash: demoHash });
