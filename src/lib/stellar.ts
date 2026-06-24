@@ -85,7 +85,11 @@ export async function submitVote(option: PollOptionId, address: string): Promise
     throw new Error(sentPayment.errorResult?.toXDR("base64") || "Payment transaction failed.");
   }
 
+  // Wait for the payment transaction to confirm on-chain
+  await waitForTransaction(sentPayment.hash);
+
   // 2. Vote Transaction
+  // Now that the payment is confirmed, Horizon has the updated sequence number
   const updatedSource = await server.getAccount(address);
   const voteTx = new TransactionBuilder(updatedSource, {
     fee: BASE_FEE,
