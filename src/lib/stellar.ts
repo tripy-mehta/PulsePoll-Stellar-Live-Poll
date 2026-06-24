@@ -61,7 +61,9 @@ export async function readResults(): Promise<PollResults> {
 export async function submitVote(option: PollOptionId, address: string): Promise<string> {
   const contract = getContract();
   const source = await server.getAccount(address);
-  const tx = new TransactionBuilder(source, {
+  
+  // 1. Payment Transaction
+  const paymentTx = new TransactionBuilder(source, {
     fee: BASE_FEE,
     networkPassphrase: TESTNET.networkPassphrase
   })
@@ -72,20 +74,37 @@ export async function submitVote(option: PollOptionId, address: string): Promise
         amount: TESTNET.voteCost
       })
     )
+    .setTimeout(30)
+    .build();
+
+  const signedPaymentXdr = await signTransactionXdr(paymentTx.toXDR(), address);
+  const signedPayment = TransactionBuilder.fromXDR(signedPaymentXdr, TESTNET.networkPassphrase);
+  const sentPayment = await server.sendTransaction(signedPayment);
+
+  if (sentPayment.status === "ERROR") {
+    throw new Error(sentPayment.errorResult?.toXDR("base64") || "Payment transaction failed.");
+  }
+
+  // 2. Vote Transaction
+  const updatedSource = await server.getAccount(address);
+  const voteTx = new TransactionBuilder(updatedSource, {
+    fee: BASE_FEE,
+    networkPassphrase: TESTNET.networkPassphrase
+  })
     .addOperation(contract.call("vote", Address.fromString(address).toScVal(), optionToScVal(option)))
     .setTimeout(30)
     .build();
 
-  const prepared = await server.prepareTransaction(tx);
-  const signedXdr = await signTransactionXdr(prepared.toXDR(), address);
-  const signed = TransactionBuilder.fromXDR(signedXdr, TESTNET.networkPassphrase);
-  const sent = await server.sendTransaction(signed);
+  const preparedVote = await server.prepareTransaction(voteTx);
+  const signedVoteXdr = await signTransactionXdr(preparedVote.toXDR(), address);
+  const signedVote = TransactionBuilder.fromXDR(signedVoteXdr, TESTNET.networkPassphrase);
+  const sentVote = await server.sendTransaction(signedVote);
 
-  if (sent.status === "ERROR") {
-    throw new Error(sent.errorResult?.toXDR("base64") || "Transaction failed.");
+  if (sentVote.status === "ERROR") {
+    throw new Error(sentVote.errorResult?.toXDR("base64") || "Vote transaction failed.");
   }
 
-  return sent.hash;
+  return sentVote.hash;
 }
 
 export async function waitForTransaction(hash: string): Promise<void> {
