@@ -61,7 +61,7 @@ function App() {
   }, [refreshResults]);
 
   React.useEffect(() => {
-    if (TESTNET.demoMode || !TESTNET.contractId) {
+    if (TESTNET.demoMode) {
       let index = 0;
       const interval = window.setInterval(() => {
         const event = createDemoEvent(index);
@@ -116,7 +116,7 @@ function App() {
     try {
       setTx({ status: "pending", message: "Waiting for wallet signature..." });
 
-      if (TESTNET.demoMode || !TESTNET.contractId) {
+      if (TESTNET.demoMode) {
         await new Promise((resolve) => window.setTimeout(resolve, 900));
         const event = createDemoEvent(Date.now());
         const demoHash = `demo-${crypto.randomUUID().slice(0, 8)}`;
